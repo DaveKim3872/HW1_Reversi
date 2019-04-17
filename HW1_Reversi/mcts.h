@@ -21,6 +21,8 @@ public:
 		return p;
 	}
 
+
+
 	void simulate1(board &tempBoard, int &result) {
 		set<pos> tempNodes;
 		const int tempComposition = tempBoard.getComposition(tempNodes);
@@ -50,6 +52,21 @@ public:
 		set<pos> validPosition;
 		board tempBoard_ucb(tempBoard);
 		int ucbComposition = tempBoard_ucb.getComposition(validPosition);
+		int tPlayer = tempBoard.curPlayer;
+		if(ucbComposition != -1)
+		{
+			if (ucbComposition == 0)
+				cout << "Game End with a Tie!";
+			else if (ucbComposition == 1)
+				if (tPlayer == 0)
+					cout << "Player Win!";
+				else cout << "AI Win!";
+			else
+				if (tPlayer == 1)
+					cout << "Player Win!";
+				else cout << "AI Win!";
+		}
+
 	}
 
 	// MCTS+UCB
