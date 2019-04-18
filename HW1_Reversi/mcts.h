@@ -14,7 +14,7 @@ class mcts
 public:
 	mcts() {};
 
-	void simulate1(board &tempBoard, int &result) {
+	void simulate(board &tempBoard, int &result) {
 		set<pos> tempNodes;
 		const int tempComposition = tempBoard.getComposition(tempNodes);
 		switch (tempComposition) {
@@ -26,7 +26,7 @@ public:
 			auto it = tempNodes.begin();
 			advance(it, num);
 			tBoard.placeOn(*it, tBoard.curPlayer);
-			return simulate1(tBoard, result);
+			return simulate(tBoard, result);
 		}
 		case 2:
 			result = 1;
@@ -59,7 +59,7 @@ public:
 				board t(tempBoard);
 				t.placeOn(*it, t.curPlayer);
 				int res = -1;
-				simulate1(t, res);
+				simulate(t, res);
 				winNum[save] = winNum[save] + res;
 			}
 			tempTime = static_cast<clock_t>(time(nullptr));
