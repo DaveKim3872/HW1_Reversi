@@ -2,6 +2,7 @@
 #include <set>
 #include <time.h>
 #include <stdlib.h>
+#include <assert.h>
 #include <iomanip>
 #include "pos.h"
 #include "board.h"
@@ -48,24 +49,14 @@ public:
 	}
 
 	// MCTS+random
-	void selectMaxWin1(board &tempBoard, int ai) {
+	pos selectMaxWin1(board &tempBoard) {
 		set<pos> validPosition;
 		board tempBoard_ucb(tempBoard);
 		int ucbComposition = tempBoard_ucb.getComposition(validPosition);
 		int tPlayer = tempBoard.curPlayer;
-		if(ucbComposition != -1)
-		{
-			if (ucbComposition == 0)
-				cout << "Game End with a Tie!";
-			else if (ucbComposition == 1)
-				if (tPlayer == 0)
-					cout << "Player Win!";
-				else cout << "AI Win!";
-			else
-				if (tPlayer == 1)
-					cout << "Player Win!";
-				else cout << "AI Win!";
-		}
+		assert(ucbComposition == -1);	// continue game
+		int winNum[64] = { 0 };
+		int simTimes[64] = { 0 };
 
 	}
 

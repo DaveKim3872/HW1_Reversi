@@ -26,14 +26,14 @@ int main()
 				board Board(0);
 				Board.outputBoard();
 				mcts a;
-				a.selectMaxWin1(Board, 1);
+				a.selectMaxWin1(Board);
 				//a.UCB1Select(Board, 1);
 			}
 			else if (decision == 'n') {
 				board Board(0);
 				Board.outputBoard();
 				mcts a;
-				a.selectMaxWin1(Board, 0);
+				a.selectMaxWin1(Board);
 				//	a.UCB1Select(Board, 0);
 
 			}
