@@ -7,22 +7,12 @@
 #include "pos.h"
 #include "board.h"
 
-const clock_t t_sim = 2 * CLOCKS_PER_SEC;
+const clock_t t_sim = 3 * CLOCKS_PER_SEC;
 
 class mcts
 {
 public:
 	mcts() {};
-
-	pos inputPosition() {
-		int x, y;
-		cout << "Please give your move. [Format: x y]" << endl;
-		cin >> x >> y;
-		pos p(x, y);
-		return p;
-	}
-
-
 
 	void simulate1(board &tempBoard, int &result) {
 		set<pos> tempNodes;
@@ -33,9 +23,9 @@ public:
 			const int treeSize = tempNodes.size();
 			srand(static_cast<unsigned int>(time(nullptr)));
 			const int num = rand() % treeSize;
-			auto iter = tempNodes.begin();
-			advance(iter, num);
-			tBoard.placeOn(*iter, tBoard.curPlayer);
+			auto it = tempNodes.begin();
+			advance(it, num);
+			tBoard.placeOn(*it, tBoard.curPlayer);
 			return simulate1(tBoard, result);
 		}
 		case 2:
@@ -51,13 +41,41 @@ public:
 	// MCTS+random
 	pos selectMaxWin1(board &tempBoard) {
 		set<pos> validPosition;
-		board tempBoard_ucb(tempBoard);
-		int ucbComposition = tempBoard_ucb.getComposition(validPosition);
-		int tPlayer = tempBoard.curPlayer;
-		assert(ucbComposition == -1);	// continue game
+		board tBoard(tempBoard);
+		const int currentComposition = tBoard.getComposition(validPosition);
+		assert(currentComposition == -1);	// continue game
 		int winNum[64] = { 0 };
-		int simTimes[64] = { 0 };
-
+		const int nodeNum = validPosition.size();
+		int c1 = 0;
+		int c2 = 0;
+		const auto start = static_cast<clock_t>(time(nullptr));
+		int tempTime = static_cast<clock_t>(time(nullptr));
+		while(tempTime < start + t_sim / 1000)
+		{
+			for(auto it = validPosition.begin(); it != validPosition.end(); ++it)
+			{
+				const int save = c1 % nodeNum;
+				c1++;
+				board t(tempBoard);
+				t.placeOn(*it, t.curPlayer);
+				int res = -1;
+				simulate1(t, res);
+				winNum[save] = winNum[save] + res;
+			}
+			tempTime = static_cast<clock_t>(time(nullptr));
+		}
+		int best = 0;
+		int i = 0;
+		pos bestPos;
+		for (auto it = validPosition.begin(); it != validPosition.end(); ++it)
+		{
+			if(winNum[i] > best)
+			{
+				bestPos = *it;
+				best = winNum[i++];
+			}
+		}
+		return bestPos;
 	}
 
 	// MCTS+UCB
