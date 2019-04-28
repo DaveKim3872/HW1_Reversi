@@ -39,7 +39,8 @@ public:
 	}
 
 	// MCTS+random
-	pos selectMaxWin1(board &tempBoard) {
+	pos selectMaxWin1(board &tempBoard)
+	{
 		set<pos> validPosition;
 		board tBoard(tempBoard);
 		const int currentComposition = tBoard.getComposition(validPosition);
@@ -67,9 +68,9 @@ public:
 		int best = 0;
 		int i = 0;
 		pos bestPos;
-		for (auto it = validPosition.begin(); it != validPosition.end(); ++it)
+		for (auto it = validPosition.begin(); it != validPosition.end(); it++)
 		{
-			if(winNum[i] > best)
+			if(winNum[i] >= best)
 			{
 				bestPos = *it;
 				best = winNum[i++];
@@ -79,7 +80,79 @@ public:
 	}
 
 	// MCTS+UCB
-	void selectMaxWin2(board &tempBoard, int ai) {
+	pos selectMaxWin2(board &tempBoard)
+	{
+		set<pos> validPosition;
+		board C(tempBoard);
+		const int currentComposition = C.getComposition(validPosition);
+		assert(currentComposition == -1);	// continue game
+		int tmpPlayer = tempBoard.curPlayer;
+		
+			//the total number of winnings
+			int moves[64] = { 0 };
+			//the total number of simulations for the node
+			int N[64] = { 0 };
+			double statisticsConfidenceIntervals[64] = { 0 };
+			int sz = validPosition.size();
+			// the total number of simulations
+			int cnt = 0;
+			//the total number of plays
+			const auto beginTime = static_cast<clock_t>(time(nullptr));
+			int curTime = static_cast<clock_t>(time(nullptr));
+			for (const auto& it : validPosition)
+			{
+				tmpPlayer = tempBoard.curPlayer;
+				const int save = cnt % sz;
+				cnt++;
+				board tmp(tempBoard);
+				tmp.placeOn(it, tmp.curPlayer);
+				int res = -1;
+				simulate(tmp, res);
+				moves[save] += res;
+				N[save]++;
+			}
 
+			while (curTime < beginTime + t_sim / 1000) {
+				int iteration = 0;
+				for (auto it = validPosition.begin(); it != validPosition.end(); it++) {
+					iteration++;
+					int largest = 0;
+					pos largest_pos = 0;
+					int i = 0;
+					for (const auto& it_in : validPosition)
+					{
+						i++;
+						statisticsConfidenceIntervals[i] = static_cast<double>(moves[i]) / cnt + sqrt(log(N[i]) / cnt);
+						if (statisticsConfidenceIntervals[i] > largest) {
+							largest_pos = it_in;
+							largest = statisticsConfidenceIntervals[i];
+						}
+					}
+					N[largest]++;
+					int save = cnt % sz;//the sequence num of the machine
+					cnt++;
+
+					tmpPlayer = tempBoard.curPlayer;
+					board tmp(tempBoard);
+					tmp.placeOn(largest_pos, tmp.curPlayer);
+					int res = -1;
+					simulate(tmp, res);
+					moves[largest] += res;
+					statisticsConfidenceIntervals[largest] = static_cast<double>(moves[largest]) / cnt + sqrt(log(N[largest]) / cnt);
+
+				}
+				curTime = static_cast<clock_t>(time(nullptr));
+			}
+			int greatest = 0;
+			pos greatestPos;
+			//choose the greatest statistics confidence intervals from all
+			int i = 0;
+			for (auto it = validPosition.begin(); it != validPosition.end(); it++) {
+				if (statisticsConfidenceIntervals[i++] >= greatest) {
+					greatestPos = *it;
+					greatest = moves[i - 1];
+				}
+			}
+			return greatestPos;
 	}
 };
